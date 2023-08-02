@@ -1,5 +1,8 @@
 mod color;
+mod ray;
 mod vec3;
+
+use vec3::Vec3;
 
 fn main() {
     let image_width = 256;
