@@ -8,14 +8,14 @@ use vec3::{Color, Point3, Vec3};
 fn hit_sphere(center: &Point3, radius: f64, r: &Ray) -> f64 {
     let center_to_origin = r.origin() - center;
     let a = vec3::dot(&r.direction(), &r.direction());
-    let b = 2.0 * vec3::dot(&r.direction(), &center_to_origin);
+    let h = vec3::dot(&r.direction(), &center_to_origin);
     let c = vec3::dot(&center_to_origin, &center_to_origin) - radius.powf(2.0);
-    let discriminant = b * b - 4.0 * a * c;
+    let discriminant = h * h - a * c;
     if discriminant < 0.0 {
         -1.0
     } else {
         // b 必定是 -2, 则更接近原点的碰撞点是下面这个
-        (-b - discriminant.sqrt()) / (2.0 * a)
+        (-h - discriminant.sqrt()) / a
     }
 }
 
