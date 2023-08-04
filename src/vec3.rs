@@ -43,7 +43,7 @@ impl std::ops::Index<usize> for Vec3 {
 }
 
 impl_op!(-|a: &Vec3| -> Vec3 { Vec3::from(-a.x(), -a.y(), -a.z()) });
-impl_op_ex!(+|a: &Vec3, b: &Vec3| -> Vec3 { Vec3::from(a.x() + b.x(), a.y() + b.y(), a.z() + b.z())});
+impl_op_ex!(+|a: &Vec3, b: &Vec3| -> Vec3 { Vec3::from(a.x() + b.x(), a.y() + b.y(), a.z() + b.z()) });
 impl_op_ex!(-|a: &Vec3, b: &Vec3| -> Vec3 { a + (-b) });
 impl_op_ex!(*|a: &Vec3, b: &f64| -> Vec3 { Vec3::from(a.x() * b, a.y() * b, a.z() * b) });
 impl_op_ex!(*|a: &f64, b: &Vec3| -> Vec3 { b * a });
@@ -58,11 +58,11 @@ impl fmt::Display for Vec3 {
     }
 }
 
-pub fn dot(u: Vec3, v: Vec3) -> f64 {
+pub fn dot(u: &Vec3, v: &Vec3) -> f64 {
     u[0] * v[0] + u[1] * v[1] + u[2] * v[2]
 }
 
-pub fn cross(u: Vec3, v: Vec3) -> Vec3 {
+pub fn cross(u: &Vec3, v: &Vec3) -> Vec3 {
     Vec3 {
         e: [
             u[1] * v[2] - u[2] * v[1],

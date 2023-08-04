@@ -5,7 +5,20 @@ mod vec3;
 use ray::Ray;
 use vec3::{Color, Point3, Vec3};
 
+fn hit_sphere(center: &Point3, radius: f64, r: &Ray) -> bool {
+    let co = r.origin() - center;
+    let a = vec3::dot(&r.direction(), &r.direction());
+    let b = 2.0 * vec3::dot(&r.direction(), &co);
+    let c = vec3::dot(&co, &co) - radius.powf(2.0);
+    let discriminant = b * b - 4.0 * a * c;
+    discriminant > 0.0
+}
+
 fn ray_color(r: &Ray) -> Color {
+    // 呃这是一个直接覆盖在屏幕上的球球
+    if hit_sphere(&Point3::from(0.0, 0.0, 5.0), 0.5, r) {
+        return Color::from(1.0, 0.0, 0.0);
+    }
     // 我们来看看是什么玩意
     let unit_direction = vec3::unit_vector(r.direction());
     // y 分量是三维几何的 y，朝上
@@ -39,6 +52,7 @@ fn main() {
             let u = i as f64 / (image_width - 1) as f64;
             // j 反向枚举，这样 v （三维纵坐标）也是反向的，从最高点到最低点
             let v = j as f64 / (image_height - 1) as f64;
+            // 这些 ray 好像都是指向屏幕的
             let r = Ray::from(origin, lower_left_corner + u * horizontal + v * vertical);
             let pixel_color = ray_color(&r);
             color::write_color(&pixel_color);
