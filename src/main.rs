@@ -9,10 +9,9 @@ fn ray_color(r: &Ray) -> Color {
     // 我们来看看是什么玩意
     let unit_direction = vec3::unit_vector(r.direction());
     // y 分量是三维几何的 y，朝上
-    // t 随着 y 分量从 0 到 1，由 0.5 到 1.0
+    // t 随着 y 分量从 -1 到 1，由 0.0 到 1.0
     let t = 0.5 + 0.5 * unit_direction.y();
-    // 当 y 是 0 的时候，t 是 0.5，那么是纯白和淡蓝的中间
-    // 当 y 是 1 的时候，图像最上方，t 是 1，那么是比较蓝的，没有白色成分
+    // 图像上方是纯白，下方是淡蓝
     (1.0 - t) * Color::from(1.0, 1.0, 1.0) + t * Color::from(0.5, 0.7, 1.0)
 }
 
@@ -22,6 +21,7 @@ fn main() {
     let image_width: i32 = 400;
     let image_height = (image_width as f64 / aspect_ratio) as i32;
 
+    // -1 到 1
     let viewport_height = 2.0;
     let viewport_width = aspect_ratio * viewport_height;
     let focal_length = 1.0;
