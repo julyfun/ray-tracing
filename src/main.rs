@@ -5,26 +5,31 @@ mod vec3;
 use ray::Ray;
 use vec3::{Color, Point3, Vec3};
 
-fn hit_sphere(center: &Point3, radius: f64, r: &Ray) -> bool {
-    let co = r.origin() - center;
+fn hit_sphere(center: &Point3, radius: f64, r: &Ray) -> f64 {
+    let center_to_origin = r.origin() - center;
     let a = vec3::dot(&r.direction(), &r.direction());
-    let b = 2.0 * vec3::dot(&r.direction(), &co);
-    let c = vec3::dot(&co, &co) - radius.powf(2.0);
+    let b = 2.0 * vec3::dot(&r.direction(), &center_to_origin);
+    let c = vec3::dot(&center_to_origin, &center_to_origin) - radius.powf(2.0);
     let discriminant = b * b - 4.0 * a * c;
-    discriminant > 0.0
+    if discriminant < 0.0 {
+        -1.0
+    } else {
+        // b 必定是 -2, 则更接近原点的碰撞点是下面这个
+        (-b - discriminant.sqrt()) / (2.0 * a)
+    }
 }
 
 fn ray_color(r: &Ray) -> Color {
     // 呃这是一个直接覆盖在屏幕上的球球
-    if hit_sphere(&Point3::from(0.0, 0.0, 5.0), 0.5, r) {
-        return Color::from(1.0, 0.0, 0.0);
-    }
+    // 这个 z 轴正负是个什么玩意
     // 我们来看看是什么玩意
-    let unit_direction = vec3::unit_vector(r.direction());
-    // y 分量是三维几何的 y，朝上
-    // t 随着 y 分量从 -1 到 1，由 0.0 到 1.0
-    let t = 0.5 + 0.5 * unit_direction.y();
-    // 图像上方是纯白，下方是淡蓝
+    let t = hit_sphere(&Point3::from(0.0, 0.0, -1.0), 0.5, r);
+    if t > 0.0 {
+        let n = vec3::unit_vector(&(r.at(t) - Vec3::from(0.0, 0.0, -1.0)));
+        return 0.5 * Color::from(n.x() + 1.0, n.y() + 1.0, n.z() + 1.0);
+    }
+    let unit_direction = vec3::unit_vector(&r.direction());
+    let t = 0.5 * (unit_direction.y() + 1.0);
     (1.0 - t) * Color::from(1.0, 1.0, 1.0) + t * Color::from(0.5, 0.7, 1.0)
 }
 
