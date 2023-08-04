@@ -11,7 +11,7 @@ impl Vec3 {
     pub fn new() -> Vec3 {
         Vec3 { e: [0.0, 0.0, 0.0] }
     }
-    pub fn from_xyz(x: f64, y: f64, z: f64) -> Vec3 {
+    pub fn from(x: f64, y: f64, z: f64) -> Vec3 {
         Vec3 { e: [x, y, z] }
     }
 
@@ -59,6 +59,13 @@ impl std::ops::Add for Vec3 {
                 self.e[2] + rhs.e[2],
             ],
         }
+    }
+}
+
+impl std::ops::Sub<Vec3> for Vec3 {
+    type Output = Self;
+    fn sub(self, rhs: Vec3) -> Self {
+        self + (-rhs)
     }
 }
 

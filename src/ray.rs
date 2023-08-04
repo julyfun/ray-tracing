@@ -14,11 +14,17 @@ impl Ray {
             dir: Vec3::new(),
         }
     }
+    pub fn from(origin: Point3, direction: Vec3) -> Self {
+        Ray {
+            orig: origin,
+            dir: direction,
+        }
+    }
 
     pub fn origin(self) -> Point3 {
         self.orig
     }
-    pub fn dir(self) -> Vec3 {
+    pub fn direction(self) -> Vec3 {
         self.dir
     }
 
