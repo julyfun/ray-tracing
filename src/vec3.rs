@@ -1,3 +1,5 @@
+use auto_ops::impl_op;
+use auto_ops::impl_op_ex;
 use std::fmt;
 
 #[derive(Copy, Clone, Debug)]
@@ -32,15 +34,6 @@ impl Vec3 {
     }
 }
 
-impl std::ops::Neg for Vec3 {
-    type Output = Self;
-    fn neg(self) -> Self {
-        Self {
-            e: [-self.e[0], -self.e[1], -self.e[2]],
-        }
-    }
-}
-
 // v[1]
 impl std::ops::Index<usize> for Vec3 {
     type Output = f64;
@@ -49,57 +42,15 @@ impl std::ops::Index<usize> for Vec3 {
     }
 }
 
-impl std::ops::Add for Vec3 {
-    type Output = Self;
-    fn add(self, rhs: Self) -> Self {
-        Self {
-            e: [
-                self.e[0] + rhs.e[0],
-                self.e[1] + rhs.e[1],
-                self.e[2] + rhs.e[2],
-            ],
-        }
-    }
-}
-
-impl std::ops::Sub<Vec3> for Vec3 {
-    type Output = Self;
-    fn sub(self, rhs: Vec3) -> Self {
-        self + (-rhs)
-    }
-}
-
-impl std::ops::Mul<f64> for Vec3 {
-    type Output = Self;
-    fn mul(self, rhs: f64) -> Self {
-        Self {
-            e: [self.e[0] * rhs, self.e[1] * rhs, self.e[2] * rhs],
-        }
-    }
-}
-
-impl std::ops::Mul<Vec3> for f64 {
-    type Output = Vec3;
-    fn mul(self, rhs: Vec3) -> Vec3 {
-        rhs * self
-    }
-}
-
-impl std::ops::Mul<Vec3> for Vec3 {
-    type Output = Self;
-    fn mul(self, rhs: Vec3) -> Vec3 {
-        Vec3 {
-            e: [self[0] * rhs[0], self[1] * rhs[1], self[2] * rhs[2]],
-        }
-    }
-}
-
-impl std::ops::Div<f64> for Vec3 {
-    type Output = Self;
-    fn div(self, rhs: f64) -> Self {
-        self * (1.0 / rhs)
-    }
-}
+impl_op!(-|a: &Vec3| -> Vec3 { Vec3::from(-a.x(), -a.y(), -a.z()) });
+impl_op_ex!(+|a: &Vec3, b: &Vec3| -> Vec3 { Vec3::from(a.x() + b.x(), a.y() + b.y(), a.z() + b.z())});
+impl_op_ex!(-|a: &Vec3, b: &Vec3| -> Vec3 { a + (-b) });
+impl_op_ex!(*|a: &Vec3, b: &f64| -> Vec3 { Vec3::from(a.x() * b, a.y() * b, a.z() * b) });
+impl_op_ex!(*|a: &f64, b: &Vec3| -> Vec3 { b * a });
+impl_op_ex!(*|a: &Vec3, b: &Vec3| -> Vec3 {
+    Vec3::from(a.x() * b.x(), a.y() * b.y(), a.z() * b.z())
+});
+impl_op_ex!(/|a: &Vec3, b: &f64| -> Vec3 { a * (1.0 / b) });
 
 impl fmt::Display for Vec3 {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
