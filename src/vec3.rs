@@ -42,7 +42,7 @@ impl std::ops::Index<usize> for Vec3 {
     }
 }
 
-impl_op!(-|a: &Vec3| -> Vec3 { Vec3::from(-a.x(), -a.y(), -a.z()) });
+impl_op_ex!(-|a: &Vec3| -> Vec3 { Vec3::from(-a.x(), -a.y(), -a.z()) });
 impl_op_ex!(+|a: &Vec3, b: &Vec3| -> Vec3 { Vec3::from(a.x() + b.x(), a.y() + b.y(), a.z() + b.z()) });
 impl_op_ex!(-|a: &Vec3, b: &Vec3| -> Vec3 { a + (-b) });
 impl_op_ex!(*|a: &Vec3, b: &f64| -> Vec3 { Vec3::from(a.x() * b, a.y() * b, a.z() * b) });

@@ -9,6 +9,7 @@ struct Sphere {
 }
 
 impl Hittable for Sphere {
+    // 返回射线是否碰撞，以及返回碰撞点和碰撞表面的出法向量
     fn hit(&self, r: &Ray, t_min: f64, t_max: f64) -> (bool, HitRecord) {
         let oc = r.origin() - self.center;
         let a = r.direction().length_squared();
@@ -29,7 +30,7 @@ impl Hittable for Sphere {
         let t = root;
         let p = r.at(t);
         // is a unit vector
-        let normal = (p - self.center) / self.radius;
-        return (true, HitRecord { normal, t, p });
+        let outward_normal = (p - self.center) / self.radius;
+        (true, HitRecord::from(&p, t, r, &outward_normal))
     }
 }
