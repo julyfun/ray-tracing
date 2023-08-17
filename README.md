@@ -2,6 +2,8 @@
 
 origin: https://raytracing.github.io/books/RayTracingInOneWeekend.html
 
+备用链接: https://aliasgar55.github.io/raytracing.github.io/books/RayTracingInOneWeekend.html
+
 ## 4.1 
 
 - 接收屏幕与实物是在原点的两侧的。z 轴正方向朝外。

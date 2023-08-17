@@ -1,4 +1,3 @@
-use auto_ops::impl_op;
 use auto_ops::impl_op_ex;
 use std::fmt;
 
