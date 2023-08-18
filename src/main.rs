@@ -1,6 +1,7 @@
 mod color;
 mod hittable;
 mod hittable_list;
+mod interval;
 mod ray;
 mod sphere;
 mod vec3;
@@ -16,7 +17,7 @@ where
     // 呃这是一个直接覆盖在屏幕上的球球
     // 这个 z 轴正负是个什么玩意
     // 我们来看看是什么玩意
-    let (hit, rec) = world.hit(r, 0.0, f64::INFINITY);
+    let (hit, rec) = world.hit(r, interval::Interval::from(0.0, f64::INFINITY));
     // 颜色取决于光线与物体的碰撞平面方向
     if hit {
         return 0.5 * (rec.normal + Color::from(1.0, 1.0, 1.0));

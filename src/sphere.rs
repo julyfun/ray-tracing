@@ -1,4 +1,5 @@
 use crate::hittable::{HitRecord, Hittable};
+use crate::interval::Interval;
 use crate::ray::Ray;
 use crate::vec3;
 use vec3::{Color, Point3, Vec3};
@@ -16,7 +17,7 @@ impl Sphere {
 
 impl Hittable for Sphere {
     // 返回射线是否碰撞，以及返回碰撞点和碰撞表面的出法向量
-    fn hit(&self, r: &Ray, t_min: f64, t_max: f64) -> (bool, HitRecord) {
+    fn hit(&self, r: &Ray, ray_t: Interval) -> (bool, HitRecord) {
         let oc = r.origin() - self.center;
         let a = r.direction().length_squared();
         let h = vec3::dot(&oc, &r.direction());
@@ -27,9 +28,10 @@ impl Hittable for Sphere {
         }
         let sqrt_d = discriminant.sqrt();
         let mut root = (-h - sqrt_d) / a;
-        if !(t_min <= root && root <= t_max) {
+        // 寻找需求范围内的解
+        if !ray_t.surrounds(root) {
             root = (-h + sqrt_d) / a;
-            if !(t_min <= root && root <= t_max) {
+            if !ray_t.surrounds(root) {
                 return (false, HitRecord::new());
             }
         }

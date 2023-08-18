@@ -1,4 +1,5 @@
 use crate::hittable::{HitRecord, Hittable};
+use crate::interval::Interval;
 use crate::ray::Ray;
 use std::rc::Rc;
 
@@ -23,12 +24,12 @@ impl HittableList {
 }
 
 impl Hittable for HittableList {
-    fn hit(&self, r: &Ray, t_min: f64, t_max: f64) -> (bool, HitRecord) {
+    fn hit(&self, r: &Ray, ray_t: Interval) -> (bool, HitRecord) {
         let mut hit_anything = false;
         let mut record = HitRecord::new();
-        let mut closest = t_max;
+        let mut closest = ray_t.max;
         for obj in self.objects.iter() {
-            let (hit, rec) = obj.hit(r, t_min, closest);
+            let (hit, rec) = obj.hit(r, Interval::from(ray_t.min, closest));
             if hit {
                 hit_anything = true;
                 closest = rec.t;
