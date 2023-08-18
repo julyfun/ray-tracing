@@ -2,16 +2,22 @@ use crate::hittable::{HitRecord, Hittable};
 use crate::ray::Ray;
 use std::rc::Rc;
 
-struct HittableList {
+pub struct HittableList {
     objects: Vec<Rc<dyn Hittable>>,
 }
 
 impl HittableList {
-    fn add(&mut self, object: Rc<dyn Hittable>) {
+    pub fn new() -> Self {
+        Self {
+            objects: Vec::new(),
+        }
+    }
+
+    pub fn add(&mut self, object: Rc<dyn Hittable>) {
         self.objects.push(object);
     }
 
-    fn clear(&mut self) {
+    pub fn clear(&mut self) {
         self.objects.clear();
     }
 }

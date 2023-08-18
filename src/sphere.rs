@@ -3,9 +3,15 @@ use crate::ray::Ray;
 use crate::vec3;
 use vec3::{Color, Point3, Vec3};
 
-struct Sphere {
+pub struct Sphere {
     center: Point3,
     radius: f64,
+}
+
+impl Sphere {
+    pub fn from(center: Point3, radius: f64) -> Self {
+        Self { center, radius }
+    }
 }
 
 impl Hittable for Sphere {

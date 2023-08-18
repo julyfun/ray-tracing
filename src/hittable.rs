@@ -4,6 +4,7 @@ use crate::vec3::{Point3, Vec3};
 
 pub struct HitRecord {
     pub p: Point3,
+    // 碰撞平面反射方向的单位法向量
     pub normal: Vec3,
     pub t: f64,
     // 碰撞是否由外向内

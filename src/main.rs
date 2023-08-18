@@ -5,31 +5,21 @@ mod ray;
 mod sphere;
 mod vec3;
 
+use hittable::Hittable;
 use ray::Ray;
 use vec3::{Color, Point3, Vec3};
 
-fn hit_sphere(center: &Point3, radius: f64, r: &Ray) -> f64 {
-    let center_to_origin = r.origin() - center;
-    let a = vec3::dot(&r.direction(), &r.direction());
-    let h = vec3::dot(&r.direction(), &center_to_origin);
-    let c = vec3::dot(&center_to_origin, &center_to_origin) - radius.powf(2.0);
-    let discriminant = h * h - a * c;
-    if discriminant < 0.0 {
-        -1.0
-    } else {
-        // b 必定是 -2, 则更接近原点的碰撞点是下面这个
-        (-h - discriminant.sqrt()) / a
-    }
-}
-
-fn ray_color(r: &Ray) -> Color {
+fn ray_color<T>(r: &Ray, world: &T) -> Color
+where
+    T: Hittable,
+{
     // 呃这是一个直接覆盖在屏幕上的球球
     // 这个 z 轴正负是个什么玩意
     // 我们来看看是什么玩意
-    let t = hit_sphere(&Point3::from(0.0, 0.0, -1.0), 0.5, r);
-    if t > 0.0 {
-        let n = vec3::unit_vector(&(r.at(t) - Vec3::from(0.0, 0.0, -1.0)));
-        return 0.5 * Color::from(n.x() + 1.0, n.y() + 1.0, n.z() + 1.0);
+    let (hit, rec) = world.hit(r, 0.0, f64::INFINITY);
+    // 颜色取决于光线与物体的碰撞平面方向
+    if hit {
+        return 0.5 * (rec.normal + Color::from(1.0, 1.0, 1.0));
     }
     let unit_direction = vec3::unit_vector(&r.direction());
     let t = 0.5 * (unit_direction.y() + 1.0);
@@ -40,30 +30,50 @@ fn main() {
     // 这个单词就是屏幕比的意思
     let aspect_ratio = 16.0 / 9.0;
     let image_width: i32 = 400;
-    let image_height = (image_width as f64 / aspect_ratio) as i32;
+    let image_height = std::cmp::max((image_width as f64 / aspect_ratio) as i32, 1);
+
+    // [世界]
+    let mut world = hittable_list::HittableList::new();
+    world.add(std::rc::Rc::new(sphere::Sphere::from(
+        Point3::from(0.0, 0.0, -1.0),
+        0.5,
+    )));
+    world.add(std::rc::Rc::new(sphere::Sphere::from(
+        Point3::from(0.0, -30.5, -1.0),
+        50.0,
+    )));
 
     // -1 到 1
+    // [相机]
+    let focal_length = 1.0;
     let viewport_height = 2.0;
     let viewport_width = aspect_ratio * viewport_height;
-    let focal_length = 1.0;
+    let camera_center = Point3::from(0.0, 0.0, 0.0);
 
-    let origin = Point3::from(0.0, 0.0, 0.0);
-    let horizontal = Vec3::from(viewport_width, 0.0, 0.0);
-    let vertical = Vec3::from(0.0, viewport_height, 0.0);
-    let lower_left_corner =
-        origin - horizontal / 2.0 - vertical / 2.0 - Vec3::from(0.0, 0.0, focal_length);
+    // [计算空间中相机投影平面的向量]
+    let viewport_u = Vec3::from(viewport_width, 0.0, 0.0);
+    let viewport_v = Vec3::from(0.0, -viewport_height, 0.0);
+
+    // [计算每个像素在空间中的向量]
+    let pixel_delta_u = viewport_u / image_width as f64;
+    let pixel_delta_v = viewport_v / image_height as f64;
+
+    // [空间中相机投影片面的左上角位置]
+    let viewport_upper_left =
+        camera_center - Vec3::from(0.0, 0.0, focal_length) - viewport_u / 2.0 - viewport_v / 2.0;
+    // [像素点 00 的中心点] # 像素点是一个正方形
+    let pixel00_loc = viewport_upper_left + 0.5 * (pixel_delta_u + pixel_delta_v);
 
     print!("P3\n{} {}\n255\n", image_width, image_height);
-    for j in (0..image_height).rev() {
-        eprintln!("{} lines remaining..", j);
+    for j in 0..image_height {
+        eprintln!("{} lines remaining..", image_height - j);
         for i in 0..image_width {
-            let u = i as f64 / (image_width - 1) as f64;
-            // j 反向枚举，这样 v （三维纵坐标）也是反向的，从最高点到最低点
-            let v = j as f64 / (image_height - 1) as f64;
-            // 这些 ray 好像都是指向屏幕的
-            let r = Ray::from(origin, lower_left_corner + u * horizontal + v * vertical);
-            let pixel_color = ray_color(&r);
-            color::write_color(&pixel_color);
+            let pixel_center = pixel00_loc + i as f64 * pixel_delta_u + j as f64 * pixel_delta_v;
+            let ray_direction = pixel_center - camera_center;
+            let r = Ray::from(camera_center, ray_direction);
+            let color = ray_color(&r, &world);
+            color::write_color(&color);
         }
     }
+    eprintln!("Done");
 }
