@@ -8,6 +8,7 @@ mod sphere;
 mod vec3;
 
 use hittable::Hittable;
+use rand::Rng;
 use ray::Ray;
 use vec3::{Color, Point3, Vec3};
 
