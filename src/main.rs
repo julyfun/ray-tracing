@@ -19,7 +19,7 @@ fn main() {
         0.5,
     )));
     world.add(std::rc::Rc::new(sphere::Sphere::from(
-        Point3::from(0.0, -80.5, -1.0),
+        Point3::from(0.0, -100.5, -1.0),
         100.0,
     )));
 

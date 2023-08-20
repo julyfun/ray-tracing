@@ -6,7 +6,7 @@ use crate::hittable_list;
 use crate::interval;
 use crate::ray::{self, Ray};
 use crate::sphere;
-use crate::vec3::{self, Color, Point3, Vec3};
+use crate::vec3::{self, random_on_hemisphere, Color, Point3, Vec3};
 
 pub struct Camera {
     aspect_ratio: f64,
@@ -69,8 +69,14 @@ impl Camera {
         let (hit, rec) = world.hit(r, interval::Interval::from(0.0, f64::INFINITY));
         // 颜色取决于光线与物体的碰撞平面方向
         if hit {
-            return 0.5 * (rec.normal + Color::from(1.0, 1.0, 1.0));
+            let direction = random_on_hemisphere(&rec.normal);
+            // wtf is going on here?
+            // 光线击中物体有 50% 被反射.. 我们这里是
+            // 反过来的，视线击中物体有 50% 继续寻找源...
+            // 只有打到背景才会停止递归，所以相当于光源完全来自于背景
+            return 0.75 * Self::ray_color(&Ray::from(rec.p, direction), world);
         }
+        // 背景色
         let unit_direction = vec3::unit_vector(&r.direction());
         let t = 0.5 * (unit_direction.y() + 1.0);
         (1.0 - t) * Color::from(1.0, 1.0, 1.0) + t * Color::from(0.5, 0.7, 1.0)

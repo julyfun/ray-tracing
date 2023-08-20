@@ -1,4 +1,5 @@
 use auto_ops::impl_op_ex;
+use rand::Rng;
 use std::fmt;
 
 #[derive(Copy, Clone, Debug)]
@@ -12,8 +13,21 @@ impl Vec3 {
     pub fn new() -> Vec3 {
         Vec3 { e: [0.0, 0.0, 0.0] }
     }
+
     pub fn from(x: f64, y: f64, z: f64) -> Vec3 {
         Vec3 { e: [x, y, z] }
+    }
+
+    pub fn random() -> Vec3 {
+        Vec3::from(rand::random(), rand::random(), rand::random())
+    }
+
+    pub fn random_range(min: f64, max: f64) -> Vec3 {
+        let mut a: [f64; 3] = [0.0, 0.0, 0.0];
+        for i in 0..3 {
+            a[i] = rand::thread_rng().gen_range(min..max);
+        }
+        Vec3::from(a[0], a[1], a[2])
     }
 
     pub fn x(self) -> f64 {
@@ -80,6 +94,28 @@ pub fn cross(u: &Vec3, v: &Vec3) -> Vec3 {
 
 pub fn unit_vector(u: &Vec3) -> Vec3 {
     u / u.length()
+}
+
+pub fn random_in_unit_sphere() -> Vec3 {
+    loop {
+        let p = Vec3::random_range(-1.0, 1.0);
+        if p.length_squared() < 1.0 {
+            return p;
+        }
+    }
+}
+
+pub fn random_unit_vector() -> Vec3 {
+    unit_vector(&random_in_unit_sphere())
+}
+
+pub fn random_on_hemisphere(normal: &Vec3) -> Vec3 {
+    let on_unit_sphere = random_unit_vector();
+    if dot(&on_unit_sphere, normal) > 0.0 {
+        return on_unit_sphere;
+    } else {
+        return -on_unit_sphere;
+    }
 }
 
 pub type Point3 = Vec3;
