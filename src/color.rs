@@ -1,11 +1,25 @@
+use crate::interval;
 use crate::vec3;
+use std::io::{self, Write};
+
+const INTERVAL: interval::Interval = interval::Interval::from(0.000, 0.999);
 
 // `输入 color 就行`
-pub fn write_color(color: &vec3::Color) {
-    let (ir, ig, ib) = (
-        (255.999 * color.x()) as i32,
-        (255.999 * color.y()) as i32,
-        (255.999 * color.z()) as i32,
-    );
-    println!("{} {} {}", ir, ig, ib);
+pub fn write_color<W: Write>(
+    out: &mut W,
+    pixel_color: &vec3::Color,
+    samples_per_pixel: i32,
+) -> io::Result<()> {
+    let scale = 1.0 / samples_per_pixel as f64;
+    let r = pixel_color.x() * scale;
+    let g = pixel_color.y() * scale;
+    let b = pixel_color.z() * scale;
+
+    writeln!(
+        out,
+        "{} {} {}",
+        (256.0 * self::INTERVAL.clamp(r)) as i32,
+        (256.0 * INTERVAL.clamp(g)) as i32,
+        (256.0 * INTERVAL.clamp(b)) as i32,
+    )
 }

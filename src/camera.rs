@@ -1,16 +1,17 @@
+use rand::Rng;
+
 use crate::color;
 use crate::hittable::{HitRecord, Hittable};
 use crate::hittable_list;
 use crate::interval;
-use crate::ray::Ray;
+use crate::ray::{self, Ray};
 use crate::sphere;
-use crate::vec3;
-
-use vec3::{Color, Point3, Vec3};
+use crate::vec3::{self, Color, Point3, Vec3};
 
 pub struct Camera {
     aspect_ratio: f64,
     image_width: i32,
+    samples_per_pixel: i32,
     image_height: i32,
     center: Point3,
     pixel00_loc: Point3,
@@ -19,7 +20,7 @@ pub struct Camera {
 }
 
 impl Camera {
-    pub fn new(aspect_ratio: f64, image_width: i32) -> Self {
+    pub fn new(aspect_ratio: f64, image_width: i32, samples_per_pixel: i32) -> Self {
         // 这个单词就是屏幕比的意思
         let image_height = std::cmp::max((image_width as f64 / aspect_ratio) as i32, 1);
 
@@ -49,6 +50,7 @@ impl Camera {
         Self {
             aspect_ratio,
             image_width,
+            samples_per_pixel,
             image_height,
             center: camera_center,
             pixel00_loc,
@@ -78,19 +80,42 @@ impl Camera {
     where
         T: Hittable,
     {
+        let mut stdout = std::io::stdout();
         print!("P3\n{} {}\n255\n", self.image_width, self.image_height);
         for j in 0..self.image_height {
             eprintln!("{} lines remaining..", self.image_height - j);
             for i in 0..self.image_width {
-                let pixel_center = self.pixel00_loc
-                    + i as f64 * self.pixel_delta_u
-                    + j as f64 * self.pixel_delta_v;
-                let ray_direction = pixel_center - self.center;
-                let r = Ray::from(self.center, ray_direction);
-                let color = Self::ray_color(&r, world);
-                color::write_color(&color);
+                let mut pixel_color = vec3::Color::from(0.0, 0.0, 0.0);
+                for _ in 0..self.samples_per_pixel {
+                    let r = self.get_ray(i, j);
+                    pixel_color += Camera::ray_color(&r, world);
+                }
+                // eprintln!("{}", pixel_color);
+                if let Err(err) =
+                    color::write_color(&mut stdout, &pixel_color, self.samples_per_pixel)
+                {
+                    eprintln!("Errors occurred! {}", err);
+                }
             }
         }
         eprintln!("Done");
+    }
+
+    // 返回一个像素点内部的随机位置
+    fn pixel_sample_square(&self) -> vec3::Vec3 {
+        let px = -0.5 + rand::random::<f64>();
+        let py = -0.5 + rand::random::<f64>();
+        px * self.pixel_delta_u + py * self.pixel_delta_v
+    }
+
+    // 输入像素坐标，返回对应像素方形内随机一条光线
+    fn get_ray(&self, i: i32, j: i32) -> Ray {
+        let pixel_center =
+            self.pixel00_loc + i as f64 * self.pixel_delta_u + j as f64 * self.pixel_delta_v;
+        let pixel_sample = pixel_center + self.pixel_sample_square();
+        // center 就是 0 0 0
+        let ray_origin = self.center;
+        let ray_direction = pixel_sample - ray_origin;
+        Ray::from(ray_origin, ray_direction)
     }
 }

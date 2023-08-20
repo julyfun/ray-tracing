@@ -19,10 +19,10 @@ fn main() {
         0.5,
     )));
     world.add(std::rc::Rc::new(sphere::Sphere::from(
-        Point3::from(0.0, -70.5, -1.0),
+        Point3::from(0.0, -80.5, -1.0),
         100.0,
     )));
 
-    let cam = camera::Camera::new(16.0 / 9.0, 400);
+    let cam = camera::Camera::new(16.0 / 9.0, 400, 100);
     cam.render(&world);
 }

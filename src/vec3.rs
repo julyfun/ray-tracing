@@ -51,6 +51,13 @@ impl_op_ex!(*|a: &Vec3, b: &Vec3| -> Vec3 {
 });
 impl_op_ex!(/|a: &Vec3, b: &f64| -> Vec3 { a * (1.0 / b) });
 
+impl std::ops::AddAssign for Vec3 {
+    fn add_assign(&mut self, rhs: Self) {
+        // 这为什么是合法的啊？
+        *self = *self + rhs;
+    }
+}
+
 impl fmt::Display for Vec3 {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{} {} {}", self[0], self[1], self[2])
