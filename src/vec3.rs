@@ -109,6 +109,7 @@ pub fn random_unit_vector() -> Vec3 {
     unit_vector(&random_in_unit_sphere())
 }
 
+// 输入反射法向量，返回一个与法向量有正方向分量的随机向量
 pub fn random_on_hemisphere(normal: &Vec3) -> Vec3 {
     let on_unit_sphere = random_unit_vector();
     if dot(&on_unit_sphere, normal) > 0.0 {

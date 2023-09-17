@@ -8,6 +8,10 @@ use crate::ray::{self, Ray};
 use crate::sphere;
 use crate::vec3::{self, random_on_hemisphere, Color, Point3, Vec3};
 
+// 如果光线碰撞求得的 t 小于该阈值，
+// 则可能是反射精度问题导致的 slightly below the surface
+static HIT_MIN_T: f64 = 0.001;
+
 pub struct Camera {
     aspect_ratio: f64,
     image_width: i32,
@@ -77,7 +81,7 @@ impl Camera {
         // 呃这是一个直接覆盖在屏幕上的球球
         // 这个 z 轴正负是个什么玩意
         // 我们来看看是什么玩意
-        let (hit, rec) = world.hit(r, interval::Interval::from(0.0, f64::INFINITY));
+        let (hit, rec) = world.hit(r, interval::Interval::from(HIT_MIN_T, f64::INFINITY));
         // 颜色取决于光线与物体的碰撞平面方向
         if hit {
             let direction = random_on_hemisphere(&rec.normal);
