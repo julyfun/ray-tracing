@@ -17,10 +17,16 @@ pub struct Camera {
     pixel00_loc: Point3,
     pixel_delta_u: Vec3,
     pixel_delta_v: Vec3,
+    max_depth: i32,
 }
 
 impl Camera {
-    pub fn new(aspect_ratio: f64, image_width: i32, samples_per_pixel: i32) -> Self {
+    pub fn new(
+        aspect_ratio: f64,
+        image_width: i32,
+        samples_per_pixel: i32,
+        max_depth: i32,
+    ) -> Self {
         // 这个单词就是屏幕比的意思
         let image_height = std::cmp::max((image_width as f64 / aspect_ratio) as i32, 1);
 
@@ -56,13 +62,18 @@ impl Camera {
             pixel00_loc,
             pixel_delta_u,
             pixel_delta_v,
+            max_depth,
         }
     }
 
-    fn ray_color<T>(r: &Ray, world: &T) -> Color
+    fn ray_color<T>(r: &Ray, depth: i32, world: &T) -> Color
     where
         T: Hittable,
     {
+        // 反射次数太多，停止
+        if depth <= 0 {
+            return Color::from(0.0, 0.0, 0.0);
+        }
         // 呃这是一个直接覆盖在屏幕上的球球
         // 这个 z 轴正负是个什么玩意
         // 我们来看看是什么玩意
@@ -74,7 +85,7 @@ impl Camera {
             // 光线击中物体有 50% 被反射.. 我们这里是
             // 反过来的，视线击中物体有 50% 继续寻找源...
             // 只有打到背景才会停止递归，所以相当于光源完全来自于背景
-            return 0.75 * Self::ray_color(&Ray::from(rec.p, direction), world);
+            return 0.50 * Self::ray_color(&Ray::from(rec.p, direction), depth - 1, world);
         }
         // 背景色
         let unit_direction = vec3::unit_vector(&r.direction());
@@ -94,7 +105,7 @@ impl Camera {
                 let mut pixel_color = vec3::Color::from(0.0, 0.0, 0.0);
                 for _ in 0..self.samples_per_pixel {
                     let r = self.get_ray(i, j);
-                    pixel_color += Camera::ray_color(&r, world);
+                    pixel_color += Camera::ray_color(&r, self.max_depth, world);
                 }
                 // eprintln!("{}", pixel_color);
                 if let Err(err) =
