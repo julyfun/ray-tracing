@@ -6,7 +6,7 @@ use crate::hittable_list;
 use crate::interval;
 use crate::ray::{self, Ray};
 use crate::sphere;
-use crate::vec3::{self, random_on_hemisphere, Color, Point3, Vec3};
+use crate::vec3::{self, random_on_hemisphere, random_unit_vector, Color, Point3, Vec3};
 
 // 如果光线碰撞求得的 t 小于该阈值，
 // 则可能是反射精度问题导致的 slightly below the surface
@@ -84,11 +84,14 @@ impl Camera {
         let (hit, rec) = world.hit(r, interval::Interval::from(HIT_MIN_T, f64::INFINITY));
         // 颜色取决于光线与物体的碰撞平面方向
         if hit {
-            let direction = random_on_hemisphere(&rec.normal);
+            // 注意 rec <- hit <- sphere <- 是单位向量
+            let direction = rec.normal + random_unit_vector();
             // wtf is going on here?
             // 光线击中物体有 50% 被反射.. 我们这里是
             // 反过来的，视线击中物体有 50% 继续寻找源...
             // 只有打到背景才会停止递归，所以相当于光源完全来自于背景
+            // [ray]
+            // 这里 ray 的方向向量长度不保证是 1
             return 0.50 * Self::ray_color(&Ray::from(rec.p, direction), depth - 1, world);
         }
         // 背景色
