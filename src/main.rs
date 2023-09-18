@@ -1,16 +1,9 @@
-mod camera;
-mod color;
-mod hittable;
-mod hittable_list;
-mod interval;
-mod ray;
-mod sphere;
-mod vec3;
-
-use hittable::Hittable;
 use rand::Rng;
-use ray::Ray;
-use vec3::{Color, Point3, Vec3};
+use ray_tracing::camera;
+use ray_tracing::hittable::Hittable;
+use ray_tracing::hittable_list;
+use ray_tracing::sphere;
+use ray_tracing::vec3::Point3;
 
 fn main() {
     let mut world = hittable_list::HittableList::new();
