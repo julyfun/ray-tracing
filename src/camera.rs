@@ -1,16 +1,48 @@
-use rand::Rng;
-
 use crate::color;
-use crate::hittable::{HitRecord, Hittable};
-use crate::hittable_list;
+use crate::hittable::Hittable;
 use crate::interval;
-use crate::ray::{self, Ray};
-use crate::sphere;
-use crate::vec3::{self, random_on_hemisphere, random_unit_vector, Color, Point3, Vec3};
+use crate::ray::Ray;
+use crate::vec3::{self, Color, Point3, Vec3};
 
-// 如果光线碰撞求得的 t 小于该阈值，
-// 则可能是反射精度问题导致的 slightly below the surface
-static HIT_MIN_T: f64 = 0.001;
+/// 如果光线碰撞求得的 t 小于该阈值，
+/// 则可能是反射精度问题导致的 slightly below the surface
+const HIT_MIN_T: f64 = 0.001;
+
+/// 给定一条光线，反射层数和物体列表 (world)，
+/// 返回该光线给予起始点的颜色值
+fn ray_color<T>(r: &Ray, depth: i32, world: &T) -> Color
+where
+    T: Hittable,
+{
+    // 反射次数太多，停止
+    if depth <= 0 {
+        return Color::from(0.0, 0.0, 0.0);
+    }
+    // 呃这是一个直接覆盖在屏幕上的球球
+    // 这个 z 轴正负是个什么玩意
+    // 我们来看看是什么玩意
+    let rec = world.hit(r, interval::Interval::from(self::HIT_MIN_T, f64::INFINITY));
+    // 颜色取决于光线与物体的碰撞平面方向
+    match rec {
+        None => {
+            // 无碰撞，给一个渐变的天空色
+            let unit_direction = Vec3::unit_vector(&r.direction());
+            let t = 0.5 * (unit_direction.y() + 1.0);
+            (1.0 - t) * Color::from(1.0, 1.0, 1.0) + t * Color::from(0.5, 0.7, 1.0)
+        }
+        Some(rec) => {
+            // 注意 rec <- hit <- sphere <- 是单位向量
+            let direction = rec.normal + Vec3::random_unit_vector();
+            // wtf is going on here?
+            // 光线击中物体有 50% 被反射.. 我们这里是
+            // 反过来的，视线击中物体有 50% 继续寻找源...
+            // 只有打到背景才会停止递归，所以相当于光源完全来自于背景
+            // [ray]
+            // 这里 ray 的方向向量长度不保证是 1
+            return 0.50 * self::ray_color(&Ray::from(rec.p, direction), depth - 1, world);
+        }
+    }
+}
 
 pub struct Camera {
     aspect_ratio: f64,
@@ -70,36 +102,6 @@ impl Camera {
         }
     }
 
-    fn ray_color<T>(r: &Ray, depth: i32, world: &T) -> Color
-    where
-        T: Hittable,
-    {
-        // 反射次数太多，停止
-        if depth <= 0 {
-            return Color::from(0.0, 0.0, 0.0);
-        }
-        // 呃这是一个直接覆盖在屏幕上的球球
-        // 这个 z 轴正负是个什么玩意
-        // 我们来看看是什么玩意
-        let (hit, rec) = world.hit(r, interval::Interval::from(HIT_MIN_T, f64::INFINITY));
-        // 颜色取决于光线与物体的碰撞平面方向
-        if hit {
-            // 注意 rec <- hit <- sphere <- 是单位向量
-            let direction = rec.normal + random_unit_vector();
-            // wtf is going on here?
-            // 光线击中物体有 50% 被反射.. 我们这里是
-            // 反过来的，视线击中物体有 50% 继续寻找源...
-            // 只有打到背景才会停止递归，所以相当于光源完全来自于背景
-            // [ray]
-            // 这里 ray 的方向向量长度不保证是 1
-            return 0.50 * Self::ray_color(&Ray::from(rec.p, direction), depth - 1, world);
-        }
-        // 背景色
-        let unit_direction = vec3::unit_vector(&r.direction());
-        let t = 0.5 * (unit_direction.y() + 1.0);
-        (1.0 - t) * Color::from(1.0, 1.0, 1.0) + t * Color::from(0.5, 0.7, 1.0)
-    }
-
     pub fn render<T>(&self, world: &T)
     where
         T: Hittable,
@@ -112,7 +114,7 @@ impl Camera {
                 let mut pixel_color = vec3::Color::from(0.0, 0.0, 0.0);
                 for _ in 0..self.samples_per_pixel {
                     let r = self.get_ray(i, j);
-                    pixel_color += Camera::ray_color(&r, self.max_depth, world);
+                    pixel_color += self::ray_color(&r, self.max_depth, world);
                 }
                 // eprintln!("{}", pixel_color);
                 if let Err(err) =
@@ -125,14 +127,14 @@ impl Camera {
         eprintln!("Done");
     }
 
-    // 返回一个像素点内部的随机位置
+    /// 返回一个像素点（三维意义下）内部的随机位置
     fn pixel_sample_square(&self) -> vec3::Vec3 {
         let px = -0.5 + rand::random::<f64>();
         let py = -0.5 + rand::random::<f64>();
         px * self.pixel_delta_u + py * self.pixel_delta_v
     }
 
-    // 输入像素坐标，返回对应像素方形内随机一条光线
+    /// 输入像素坐标，返回对应像素方形内随机一条光线
     fn get_ray(&self, i: i32, j: i32) -> Ray {
         let pixel_center =
             self.pixel00_loc + i as f64 * self.pixel_delta_u + j as f64 * self.pixel_delta_v;
