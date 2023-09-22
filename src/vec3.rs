@@ -1,10 +1,10 @@
-use auto_ops::impl_op_ex;
+use auto_ops::impl_op;
 use rand::Rng;
 use std::fmt;
 
 const VEC3_EPS: f64 = 1e-8;
 
-#[derive(Clone, Debug)]
+#[derive(Copy, Clone, Debug)]
 pub struct Vec3 {
     // ...
     e: [f64; 3],
@@ -32,29 +32,29 @@ impl Vec3 {
         Vec3::from(a[0], a[1], a[2])
     }
 
-    pub fn x(&self) -> f64 {
+    pub fn x(self) -> f64 {
         self.e[0]
     }
-    pub fn y(&self) -> f64 {
+    pub fn y(self) -> f64 {
         self.e[1]
     }
-    pub fn z(&self) -> f64 {
+    pub fn z(self) -> f64 {
         self.e[2]
     }
-    pub fn length_squared(&self) -> f64 {
+    pub fn length_squared(self) -> f64 {
         self.e[0].powi(2) + self.e[1].powi(2) + self.e[2].powi(2)
     }
-    pub fn length(&self) -> f64 {
+    pub fn length(self) -> f64 {
         self.length_squared().sqrt()
     }
-    pub fn near_zero_in_all_dimensions(&self) -> bool {
+    pub fn near_zero_in_all_dimensions(self) -> bool {
         self.x() < VEC3_EPS && self.y() < VEC3_EPS && self.z() < VEC3_EPS
     }
-    pub fn dot(&self, v: &Vec3) -> f64 {
+    pub fn dot(self, v: Vec3) -> f64 {
         self[0] * v[0] + self[1] * v[1] + self[2] * v[2]
     }
 
-    pub fn cross(&self, v: &Vec3) -> Vec3 {
+    pub fn cross(&self, v: Vec3) -> Vec3 {
         Vec3 {
             e: [
                 self[1] * v[2] - self[2] * v[1],
@@ -64,7 +64,7 @@ impl Vec3 {
         }
     }
 
-    pub fn unit_vector(&self) -> Vec3 {
+    pub fn unit_vector(self) -> Vec3 {
         self / self.length()
     }
 
@@ -82,9 +82,9 @@ impl Vec3 {
     }
 
     // 输入反射法向量，返回一个与法向量有正方向分量的随机向量
-    pub fn random_on_hemisphere(&self) -> Vec3 {
+    pub fn random_on_hemisphere(self) -> Vec3 {
         let on_unit_sphere = Self::random_unit_vector();
-        if Self::dot(&on_unit_sphere, self) > 0.0 {
+        if Self::dot(on_unit_sphere, self) > 0.0 {
             return on_unit_sphere;
         } else {
             return -on_unit_sphere;
@@ -100,16 +100,14 @@ impl std::ops::Index<usize> for Vec3 {
     }
 }
 
-impl_op_ex!(-|a: &Vec3| -> Vec3 { Vec3::from(-a.x(), -a.y(), -a.z()) });
-impl_op_ex!(+|a: &Vec3, b: &Vec3| -> Vec3 { Vec3::from(a.x() + b.x(), a.y() + b.y(), a.z() + b.z()) });
-impl_op_ex!(-|a: &Vec3, b: &Vec3| -> Vec3 { a + (-b) });
-impl_op_ex!(*|a: &Vec3, b: &f64| -> Vec3 { Vec3::from(a.x() * b, a.y() * b, a.z() * b) });
-impl_op_ex!(*|a: &f64, b: &Vec3| -> Vec3 { b * a });
+impl_op!(-|a: Vec3| -> Vec3 { Vec3::from(-a.x(), -a.y(), -a.z()) });
+impl_op!(+|a: Vec3, b: Vec3| -> Vec3 { Vec3::from(a.x() + b.x(), a.y() + b.y(), a.z() + b.z()) });
+impl_op!(-|a: Vec3, b: Vec3| -> Vec3 { a + (-b) });
+impl_op!(*|a: Vec3, b: f64| -> Vec3 { Vec3::from(a.x() * b, a.y() * b, a.z() * b) });
+impl_op!(*|a: f64, b: Vec3| -> Vec3 { b * a });
 // 就是点乘
-impl_op_ex!(*|a: &Vec3, b: &Vec3| -> Vec3 {
-    Vec3::from(a.x() * b.x(), a.y() * b.y(), a.z() * b.z())
-});
-impl_op_ex!(/|a: &Vec3, b: &f64| -> Vec3 { a * (1.0 / b) });
+impl_op!(*|a: Vec3, b: Vec3| -> Vec3 { Vec3::from(a.x() * b.x(), a.y() * b.y(), a.z() * b.z()) });
+impl_op!(/|a: Vec3, b: f64| -> Vec3 { a * (1.0 / b) });
 
 impl std::ops::AddAssign for Vec3 {
     fn add_assign(&mut self, rhs: Self) {
@@ -119,7 +117,7 @@ impl std::ops::AddAssign for Vec3 {
 }
 
 impl Vec3 {
-    pub fn reflect(&self, reflective_normal: &Vec3) -> Vec3 {
+    pub fn reflect(self, reflective_normal: Vec3) -> Vec3 {
         self - 2.0 * self.dot(reflective_normal) * reflective_normal
     }
 }

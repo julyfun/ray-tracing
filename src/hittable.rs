@@ -20,18 +20,25 @@ impl HitRecord {
     // p: 碰撞点
     // t: 不知道由什么用，但是是入射光线的长度解
     // r: 入射光线
-    pub fn from(p: &Point3, t: f64, r: &Ray, outward_normal: &Vec3) -> Self {
-        let front_face = Vec3::dot(&r.direction(), outward_normal) < 0.0;
+    pub fn from(
+        p: Point3,
+        t: f64,
+        r: &Ray,
+        outward_normal: Vec3,
+        material: Rc<dyn Material>,
+    ) -> Self {
+        let front_face = Vec3::dot(r.direction(), outward_normal) < 0.0;
         // 如果由外向内，则法向量方向向外
         let normal = if front_face {
-            outward_normal.clone()
+            outward_normal
         } else {
             // 否则法向量方向向内
-            -outward_normal.clone()
+            -outward_normal
         };
         Self {
-            p: p.clone(),
+            p,
             normal,
+            material,
             t,
             front_face,
         }
@@ -39,5 +46,5 @@ impl HitRecord {
 }
 
 pub trait Hittable {
-    fn hit(&self, r: &Ray, ray_t: Interval) -> Option<HitRecord>;
+    fn hit(&self, r: &Ray, ray_t: &Interval) -> Option<HitRecord>;
 }

@@ -25,26 +25,26 @@ where
     // 呃这是一个直接覆盖在屏幕上的球球
     // 这个 z 轴正负是个什么玩意
     // 我们来看看是什么玩意
-    let rec = world.hit(r, interval::Interval::from(self::HIT_MIN_T, f64::INFINITY));
+    let rec = world.hit(r, &interval::Interval::from(self::HIT_MIN_T, f64::INFINITY));
     // 颜色取决于光线与物体的碰撞平面方向
-    match rec {
-        None => {
-            // 无碰撞，给一个渐变的天空色
-            let unit_direction = Vec3::unit_vector(&r.direction());
-            let t = 0.5 * (unit_direction.y() + 1.0);
-            (1.0 - t) * Color::from(1.0, 1.0, 1.0) + t * Color::from(0.5, 0.7, 1.0)
+    if let Some(rec) = rec {
+        let scattered = rec.material.scatter(r, rec.p, rec.normal);
+        match scattered {
+            Some(scattered) => {
+                // wtf is going on here?
+                // 光线击中物体有 50% 被反射.. 我们这里是
+                // 反过来的，视线击中物体有 50% 继续寻找源...
+                // 只有打到背景才会停止递归，所以相当于光源完全来自于背景
+                // [ray]
+                // 这里 ray 的方向向量长度不保证是 1
+                scattered.attenuation * ray_color(&scattered.ray, depth - 1, world)
+            }
+            _ => Color::from(0.0, 0.0, 0.0),
         }
-        Some(rec) => {
-            // 注意 rec <- hit <- sphere <- 是单位向量
-            let direction = rec.normal + Vec3::random_unit_vector();
-            // wtf is going on here?
-            // 光线击中物体有 50% 被反射.. 我们这里是
-            // 反过来的，视线击中物体有 50% 继续寻找源...
-            // 只有打到背景才会停止递归，所以相当于光源完全来自于背景
-            // [ray]
-            // 这里 ray 的方向向量长度不保证是 1
-            return 0.50 * self::ray_color(&Ray::from(rec.p, direction), depth - 1, world);
-        }
+    } else {
+        let unit_direction = r.direction().unit_vector();
+        let t = 0.5 * (unit_direction.y() + 1.0);
+        (1.0 - t) * Color::from(1.0, 1.0, 1.0) + t * Color::from(0.5, 0.7, 1.0)
     }
 }
 

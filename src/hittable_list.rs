@@ -24,10 +24,10 @@ impl HittableList {
 }
 
 impl Hittable for HittableList {
-    fn hit(&self, r: &Ray, ray_t: Interval) -> Option<HitRecord> {
+    fn hit(&self, r: &Ray, ray_t: &Interval) -> Option<HitRecord> {
         self.objects
             .iter()
-            .filter_map(|obj| obj.hit(r, ray_t))
+            .filter_map(|obj| obj.hit(r, &ray_t))
             .min_by(|rec1, rec2| rec1.t.partial_cmp(&rec2.t).unwrap())
         // let mut hit_anything = false;
         // let mut record = HitRecord::new();
