@@ -1,9 +1,6 @@
-use rand::Rng;
 use ray_tracing::{
-    camera,
-    hittable::Hittable,
-    hittable_list,
-    material::{Lambertian, Metal},
+    camera, hittable_list,
+    material::{FuzzyMetal, Lambertian, Metal},
     sphere,
     vec3::{Color, Point3},
 };
@@ -12,8 +9,8 @@ use std::rc::Rc;
 fn main() {
     let ground = Rc::new(Lambertian::from(Color::from(0.8, 0.8, 0.0)));
     let center = Rc::new(Lambertian::from(Color::from(0.7, 0.3, 0.3)));
-    let left = Rc::new(Metal::from(Color::from(0.8, 0.8, 0.8)));
-    let right = Rc::new(Metal::from(Color::from(0.8, 0.6, 0.2)));
+    let left = Rc::new(FuzzyMetal::from(Color::from(0.8, 0.8, 0.8), 0.1));
+    let right = Rc::new(FuzzyMetal::from(Color::from(0.8, 0.8, 0.8), 0.5));
     let mut world = hittable_list::HittableList::new();
     world.add(std::rc::Rc::new(sphere::Sphere::from(
         Point3::from(0.0, -100.5, -1.0),

@@ -37,6 +37,7 @@ where
                 // 只有打到背景才会停止递归，所以相当于光源完全来自于背景
                 // [ray]
                 // 这里 ray 的方向向量长度不保证是 1
+                // attenuation 是 0.8 表示 0.8 将会被反射
                 scattered.attenuation * ray_color(&scattered.ray, depth - 1, world)
             }
             _ => Color::from(0.0, 0.0, 0.0),

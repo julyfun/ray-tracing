@@ -105,7 +105,7 @@ impl_op!(+|a: Vec3, b: Vec3| -> Vec3 { Vec3::from(a.x() + b.x(), a.y() + b.y(), 
 impl_op!(-|a: Vec3, b: Vec3| -> Vec3 { a + (-b) });
 impl_op!(*|a: Vec3, b: f64| -> Vec3 { Vec3::from(a.x() * b, a.y() * b, a.z() * b) });
 impl_op!(*|a: f64, b: Vec3| -> Vec3 { b * a });
-// 就是点乘
+// 数乘
 impl_op!(*|a: Vec3, b: Vec3| -> Vec3 { Vec3::from(a.x() * b.x(), a.y() * b.y(), a.z() * b.z()) });
 impl_op!(/|a: Vec3, b: f64| -> Vec3 { a * (1.0 / b) });
 

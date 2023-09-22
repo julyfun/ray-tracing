@@ -64,3 +64,29 @@ impl Material for Metal {
         })
     }
 }
+
+pub struct FuzzyMetal {
+    albedo: Color,
+    fuzz: f64,
+}
+
+impl FuzzyMetal {
+    pub fn from(albedo: Color, fuzz: f64) -> Self {
+        Self { albedo, fuzz }
+    }
+}
+
+impl Material for FuzzyMetal {
+    fn scatter(&self, r_in: &Ray, hit_pos: Point3, hit_face_normal: Vec3) -> Option<Scattered> {
+        let reflected_direction = r_in.direction().unit_vector().reflect(hit_face_normal);
+        let fuzzy_direction = reflected_direction + self.fuzz * Vec3::random_unit_vector();
+        if fuzzy_direction.dot(hit_face_normal) > 0.0 {
+            Some(Scattered {
+                attenuation: self.albedo,
+                ray: Ray::from(hit_pos, fuzzy_direction),
+            })
+        } else {
+            None
+        }
+    }
+}
