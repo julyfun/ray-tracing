@@ -1,6 +1,6 @@
 use ray_tracing::{
     camera, hittable_list,
-    material::{FuzzyMetal, Lambertian, Metal},
+    material::{Dielectric, FuzzyMetal, Lambertian, Metal},
     sphere,
     vec3::{Color, Point3},
 };
@@ -8,8 +8,8 @@ use std::rc::Rc;
 
 fn main() {
     let ground = Rc::new(Lambertian::from(Color::from(0.8, 0.8, 0.0)));
-    let center = Rc::new(Lambertian::from(Color::from(0.7, 0.3, 0.3)));
-    let left = Rc::new(FuzzyMetal::from(Color::from(0.8, 0.8, 0.8), 0.1));
+    let center = Rc::new(Dielectric::from(1.5));
+    let left = Rc::new(Dielectric::from(1.5));
     let right = Rc::new(FuzzyMetal::from(Color::from(0.8, 0.8, 0.8), 0.5));
     let mut world = hittable_list::HittableList::new();
     world.add(std::rc::Rc::new(sphere::Sphere::from(

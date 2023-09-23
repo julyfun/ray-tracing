@@ -90,6 +90,14 @@ impl Vec3 {
             return -on_unit_sphere;
         }
     }
+
+    pub fn refract(self, normal: Vec3, etai_over_etat: f64) -> Vec3 {
+        // ?? 这个 1.0 是啥
+        let cos_theta = -self.dot(normal).min(1.0);
+        let r_out_perp = etai_over_etat * (self + cos_theta * normal);
+        let r_out_parallel = -(1.0 - r_out_perp.length_squared()).abs().sqrt() * normal;
+        r_out_perp + r_out_parallel
+    }
 }
 
 // v[1]

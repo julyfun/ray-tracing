@@ -28,7 +28,7 @@ where
     let rec = world.hit(r, &interval::Interval::from(self::HIT_MIN_T, f64::INFINITY));
     // 颜色取决于光线与物体的碰撞平面方向
     if let Some(rec) = rec {
-        let scattered = rec.material.scatter(r, rec.p, rec.normal);
+        let scattered = rec.material.scatter(r, rec.p, rec.normal, rec.front_face);
         match scattered {
             Some(scattered) => {
                 // wtf is going on here?
