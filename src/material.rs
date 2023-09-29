@@ -110,6 +110,7 @@ impl Material for FuzzyMetal {
     }
 }
 
+// 绝缘体
 pub struct Dielectric {
     ir: f64,
 }
@@ -118,6 +119,11 @@ impl Dielectric {
     pub fn from(ir: f64) -> Dielectric {
         Dielectric { ir }
     }
+}
+
+fn reflectance(cos: f64, ref_idx: f64) -> f64 {
+    let r0 = ((1.0 - ref_idx) / (1.0 + ref_idx)).powi(2);
+    r0 + (1.0 - r0) * (1.0 - cos).powi(5)
 }
 
 impl Material for Dielectric {
@@ -133,14 +139,19 @@ impl Material for Dielectric {
         } else {
             self.ir
         };
-        let refracted = r_in
-            .direction()
-            .unit_vector()
-            .refract(hit_face_normal, refraction_ratio);
-        let scattered = Scattered {
-            attenuation: Color::from(1.0, 1.0, 1.0),
-            ray: Ray::from(hit_pos, refracted),
+        let unit_direction = r_in.direction().unit_vector();
+        let cos_theta = (-unit_direction).dot(hit_face_normal).min(1.0);
+        let sin_theta = (1.0 - cos_theta.powi(2)).sqrt();
+        let direction = if refraction_ratio * sin_theta > 1.0
+            || self::reflectance(cos_theta, refraction_ratio) > rand::random()
+        {
+            unit_direction.reflect(hit_face_normal)
+        } else {
+            unit_direction.refract(hit_face_normal, refraction_ratio)
         };
-        Some(scattered)
+        Some(Scattered {
+            attenuation: Color::from(1.0, 1.0, 1.0),
+            ray: Ray::from(hit_pos, direction),
+        })
     }
 }

@@ -57,9 +57,17 @@ pub struct Camera {
     image_height: i32,
     center: Point3,
     pixel00_loc: Point3,
+    // [计算每个像素在空间中的向量]
     pixel_delta_u: Vec3,
     pixel_delta_v: Vec3,
     max_depth: i32,
+    fov: f64,
+    /// 三向单位向量，向右，还是发射光线
+    u: Vec3,
+    /// 向上
+    v: Vec3,
+    /// z 轴，向屏幕内部
+    w: Vec3,
 }
 
 impl Camera {
@@ -68,30 +76,39 @@ impl Camera {
         image_width: i32,
         samples_per_pixel: i32,
         max_depth: i32,
+        fov: f64,
+        // Point where camera is looking from
+        look_from: Point3,
+        // Point where camera is looking at
+        look_at: Point3,
+        vup: Vec3,
     ) -> Self {
         // 这个单词就是屏幕比的意思
         let image_height = std::cmp::max((image_width as f64 / aspect_ratio) as i32, 1);
 
         // -1 到 1
         // [相机]
-        let focal_length = 1.0;
-        let viewport_height = 2.0;
+        let focal_length = (look_from - look_at).length();
+        let h = (fov / 2.0).tan();
+        let viewport_height = 2.0 * h * focal_length;
         let viewport_width = aspect_ratio * viewport_height;
-        let camera_center = Point3::from(0.0, 0.0, 0.0);
+        let camera_center = look_from;
+
+        let w = (look_from - look_at).unit_vector();
+        let u = vup.cross(w).unit_vector();
+        let v = w.cross(u);
 
         // [计算空间中相机投影平面的向量]
-        let viewport_u = Vec3::from(viewport_width, 0.0, 0.0);
-        let viewport_v = Vec3::from(0.0, -viewport_height, 0.0);
+        let viewport_u = viewport_width * u;
+        let viewport_v = viewport_height * (-v);
 
         // [计算每个像素在空间中的向量]
         let pixel_delta_u = viewport_u / image_width as f64;
         let pixel_delta_v = viewport_v / image_height as f64;
 
-        // [空间中相机投影片面的左上角位置]
-        let viewport_upper_left = camera_center
-            - Vec3::from(0.0, 0.0, focal_length)
-            - viewport_u / 2.0
-            - viewport_v / 2.0;
+        // [空间中相机投平面片面的左上角位置]
+        let viewport_upper_left =
+            camera_center - focal_length * w - viewport_u / 2.0 - viewport_v / 2.0;
         // [像素点 00 的中心点] # 像素点是一个正方形
         let pixel00_loc = viewport_upper_left + 0.5 * (pixel_delta_u + pixel_delta_v);
 
@@ -105,6 +122,10 @@ impl Camera {
             pixel_delta_u,
             pixel_delta_v,
             max_depth,
+            fov,
+            u,
+            v,
+            w,
         }
     }
 
