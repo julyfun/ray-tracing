@@ -74,7 +74,7 @@ pub struct Camera {
 }
 
 impl Camera {
-    pub fn new(
+    pub fn from(
         aspect_ratio: f64,
         image_width: i32,
         samples_per_pixel: i32,
