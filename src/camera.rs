@@ -68,6 +68,9 @@ pub struct Camera {
     v: Vec3,
     /// z 轴，向屏幕内部
     w: Vec3,
+    defocus_angle: f64,
+    defocus_disk_u: Vec3,
+    defocus_disk_v: Vec3,
 }
 
 impl Camera {
@@ -82,15 +85,16 @@ impl Camera {
         // Point where camera is looking at
         look_at: Point3,
         vup: Vec3,
+        defocus_angle: f64,
+        focus_dist: f64,
     ) -> Self {
         // 这个单词就是屏幕比的意思
         let image_height = std::cmp::max((image_width as f64 / aspect_ratio) as i32, 1);
 
         // -1 到 1
         // [相机]
-        let focal_length = (look_from - look_at).length();
         let h = (fov / 2.0).tan();
-        let viewport_height = 2.0 * h * focal_length;
+        let viewport_height = 2.0 * h * focus_dist;
         let viewport_width = aspect_ratio * viewport_height;
         let camera_center = look_from;
 
@@ -108,9 +112,11 @@ impl Camera {
 
         // [空间中相机投平面片面的左上角位置]
         let viewport_upper_left =
-            camera_center - focal_length * w - viewport_u / 2.0 - viewport_v / 2.0;
+            camera_center - focus_dist * w - viewport_u / 2.0 - viewport_v / 2.0;
         // [像素点 00 的中心点] # 像素点是一个正方形
         let pixel00_loc = viewport_upper_left + 0.5 * (pixel_delta_u + pixel_delta_v);
+
+        let defocus_radius = focus_dist * (defocus_angle.tan());
 
         Self {
             aspect_ratio,
@@ -123,9 +129,13 @@ impl Camera {
             pixel_delta_v,
             max_depth,
             fov,
+            // 方向向量哦
             u,
             v,
             w,
+            defocus_angle,
+            defocus_disk_u: u * defocus_radius,
+            defocus_disk_v: v * defocus_radius,
         }
     }
 
@@ -167,8 +177,18 @@ impl Camera {
             self.pixel00_loc + i as f64 * self.pixel_delta_u + j as f64 * self.pixel_delta_v;
         let pixel_sample = pixel_center + self.pixel_sample_square();
         // center 就是 0 0 0
-        let ray_origin = self.center;
+        let ray_origin = if self.defocus_angle <= 0.0 {
+            self.center
+        } else {
+            self.defocus_disk_sample()
+        };
+        // eprintln!("angle: {}", ray_origin);
         let ray_direction = pixel_sample - ray_origin;
         Ray::from(ray_origin, ray_direction)
+    }
+
+    fn defocus_disk_sample(&self) -> Vec3 {
+        let p = Vec3::random_in_unit_disk(); // 只是为了获取两个 [0, 1] 实数
+        self.center + p.x() * self.defocus_disk_u + p.y() * self.defocus_disk_v
     }
 }

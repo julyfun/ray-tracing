@@ -47,6 +47,8 @@ fn main() {
         Point3::from(-2.0, 2.0, 1.0),
         Point3::from(0.0, 0.0, -1.0),
         Vec3::from(0.0, 1.0, 0.0),
+        10f64.to_radians(),
+        3.4,
     );
     cam.render(&world);
 }
