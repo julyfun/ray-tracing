@@ -8,11 +8,12 @@ use crate::vec3::{self, Color, Point3, Vec3};
 /// 则可能是反射精度问题导致的 slightly below the surface
 const HIT_MIN_T: f64 = 0.001;
 
+/// # `fn ray_color`
 /// 给定一条光线，反射层数和物体列表 (world)，
-/// 返回该光线给予起始点的颜色值
-/// 我想本函数应该属于物理世界工厂而不是相机的工厂吧
+/// 返回该光线给予起始点的颜色值。
+/// 我想本函数应该属于物理世界工厂而不是相机的工厂吧。
 /// will it be possibly used in other scenes?
-/// 然而函数又可以被理解为另一个函数中部分功能的拆分... 这么看来放在 Camera 里面也合理
+/// 然而函数又可以被理解为另一个函数中部分功能的拆分... 这么看来放在 Camera 里面也合理。
 /// Who cares! focus on code, not style (unless needed)
 fn ray_color<T>(r: &Ray, depth: i32, world: &T) -> Color
 where
